@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Machine Failure Prediction</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #ddd; }
+        .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 50px; margin-top: 30px; }
+        .progress-container { width: 150px; text-align: center; position: relative; }
+        input { width: 100%; padding: 5px; margin-top: 5px; text-align: center; }
+        button { background-color: rgb(0, 204, 255); color: rgb(0, 0, 0); padding: 10px; width: 150px; border: none; cursor: pointer; margin: 20px 0; }
+        .progress-ring { position: absolute; top: 0; left: 0; transform: rotate(-90deg); }
+        .progress-text { font-size: 20px; font-weight: bold; fill: black; text-anchor: middle; dominant-baseline: middle; }
+        .status-box { background-color: black; color: white; padding: 15px; margin-bottom: 20px; display: inline-block; }
+        .alert-box { background-color: white; color: red; font-weight: bold; padding: 10px; margin-top: 5px; }
+        .data-box { background-color: black; color: white; padding: 20px; width: 120px; }
+        .data-value { background-color: white; color: black; padding: 15px; font-size: 24px; font-weight: bold; }
+        
+    </style>
+</head>
+<body>
+    <h1>Machine Failure Prediction</h1>
+    
+    <div class="status-box">
+        MACHINE STATUS
+        <div class="alert-box" id="status-alert">Waiting for input...</div>
+    </div>
+
+  <form method="POST" action="/predict_ML">
+        <div class="container" style="margin-top: 70px;">
+            <div class="progress-container">
+                <svg width="100" height="100">
+                    <circle cx="50" cy="50" r="40" stroke="lightgray" stroke-width="8" fill="none"/>
+                    <circle class="progress-ring" cx="50" cy="50" r="40" stroke="green" stroke-width="8" fill="none" stroke-dasharray="251" stroke-dashoffset="125"/>
+                    <text x="50" y="50" class="progress-text">{{Type}}</text>
+                </svg>
+                <input type="number" id="type" name="Type" placeholder="Type" step="any">
+            </div>
+            <div class="progress-container">
+                <svg width="100" height="100">
+                    <circle cx="50" cy="50" r="40" stroke="lightgray" stroke-width="8" fill="none"/>
+                    <circle class="progress-ring" cx="50" cy="50" r="40" stroke="green" stroke-width="8" fill="none" stroke-dasharray="251" stroke-dashoffset="125"/>
+                    <text x="50" y="50" class="progress-text">{{Air_temperature}}</text>
+                </svg>
+                <input type="number" id="airTemp" name="Air_temperature" placeholder="Air Temp [K]" step="any">
+            </div>
+            <div class="progress-container">
+                <svg width="100" height="100">
+                    <circle cx="50" cy="50" r="40" stroke="lightgray" stroke-width="8" fill="none"/>
+                    <circle class="progress-ring" cx="50" cy="50" r="40" stroke="green" stroke-width="8" fill="none" stroke-dasharray="251" stroke-dashoffset="125"/>
+                    <text x="50" y="50" name="" class="progress-text">{{Process_temperature}}</text>
+                </svg>
+                <input type="number" id="procTemp" name="Process_temperature" placeholder="Process Temp [K]" step="any">
+            </div>
+        </div>
+        <br>
+        <div>
+            <button type="submit" onclick="predictFailure()">Predict ML</button>
+            <button type="button" class="clear-btn" onclick="clearData()">Stop</button>
+            <button type="button" onclick="location.href='/index1'">Control Panel</button>
+        </div>
+
+        <div class="container">
+            <div class="progress-container">
+                <svg width="100" height="100">
+                    <circle cx="50" cy="50" r="40" stroke="lightgray" stroke-width="8" fill="none"/>
+                    <circle class="progress-ring" cx="50" cy="50" r="40" stroke="green" stroke-width="8" fill="none" stroke-dasharray="251" stroke-dashoffset="125"/>
+                    <text x="50" y="50" class="progress-text">{{Rotational_speed}}</text>
+                </svg>
+                <input type="number" id="speed" name="Rotational_speed" placeholder="Speed [rpm]" step="any">
+            </div>
+            <div class="progress-container">
+                <svg width="100" height="100">
+                    <circle cx="50" cy="50" r="40" stroke="lightgray" stroke-width="8" fill="none"/>
+                    <circle class="progress-ring" cx="50" cy="50" r="40" stroke="green" stroke-width="8" fill="none" stroke-dasharray="251" stroke-dashoffset="125"/>
+                    <text x="50" y="50" class="progress-text">{{Torque}}</text>
+                </svg>
+                <input type="number" id="torque" name="Torque" placeholder="Torque [Nm]" step="any">
+            </div>
+            <div class="progress-container">
+                <svg width="100" height="100">
+                    <circle cx="50" cy="50" r="40" stroke="lightgray" stroke-width="8" fill="none"/>
+                    <circle class="progress-ring" cx="50" cy="50" r="40" stroke="green" stroke-width="8" fill="none" stroke-dasharray="251" stroke-dashoffset="125"/>
+                    <text x="50" y="50" class="progress-text">{{Tool_wear}}</text>
+                </svg>
+                <input type="number" id="toolWear" name ="Tool_wear" placeholder="Tool Wear [min]" step="any">
+            </div>
+        </div>    
+    </form>
+
+    <div id="result-container" class="container" style="margin-top: 20px;"></div>
+
+    <script>
+        function predictFailure() {
+            let userInput = {
+                "Type": Number(document.getElementById("type").value),
+                "Air temperature [K]": Number(document.getElementById("airTemp").value),
+                "Process temperature [K]": Number(document.getElementById("procTemp").value),
+                "Rotational speed [rpm]": Number(document.getElementById("speed").value),
+                "Torque [Nm]": Number(document.getElementById("torque").value),
+                "Tool wear [min]": Number(document.getElementById("toolWear").value)
+            };
+            localStorage.setItem("machineData", JSON.stringify(userInput));
+            displayData(userInput);
+        }
+
+        function clearData() {
+            localStorage.removeItem("machineData");
+            document.getElementById("type").value = "";
+            document.getElementById("airTemp").value = "";
+            document.getElementById("procTemp").value = "";
+            document.getElementById("speed").value = "";
+            document.getElementById("torque").value = "";
+            document.getElementById("toolWear").value = "";
+            document.getElementById("status-alert").textContent = "Waiting for input...";
+            document.getElementById("status-alert").style.color = "black";
+            document.getElementById("result-container").innerHTML = "";
+        }
+
+        function displayData(userInput) {
+        let prediction = "{{prediction}}";  // Prediction from Python backend
+        document.getElementById("status-alert").textContent = 
+            prediction === "Normal" ? "Machine Working Fine" : `Machine Failure Detected: ${prediction}`;
+        document.getElementById("status-alert").style.color = 
+            prediction === "Normal" ? "green" : "red";
+        
+        document.getElementById("result-container").innerHTML = `
+            <div class='data-box'><div class='data-value'>${userInput["Type"]}</div> TYPE</div>
+            <div class='data-box'><div class='data-value'>${userInput["Air temperature [K]"]}</div> AIR TEMPERATURE [K]</div>
+            <div class='data-box'><div class='data-value'>${userInput["Process temperature [K]"]}</div> PROCESS TEMPERATURE [K]</div>
+            <div class='data-box'><div class='data-value'>${userInput["Rotational speed [rpm]"]}</div> ROTATIONAL SPEED [RPM]</div>
+            <div class='data-box'><div class='data-value'>${userInput["Torque [Nm]"]}</div> TORQUE [NM]</div>
+            <div class='data-box'><div class='data-value'>${userInput["Tool wear [min]"]}</div> TOOL WEAR [MIN]</div>
+        `;
+    }
+
+        window.onload = function() {
+            let savedData = localStorage.getItem("machineData");
+            if (savedData) {
+                let parsedData = JSON.parse(savedData);
+                document.getElementById("type").value = parsedData["Type"];
+                document.getElementById("airTemp").value = parsedData["Air temperature [K]"];
+                document.getElementById("procTemp").value = parsedData["Process temperature [K]"];
+                document.getElementById("speed").value = parsedData["Rotational speed [rpm]"];
+                document.getElementById("torque").value = parsedData["Torque [Nm]"];
+                document.getElementById("toolWear").value = parsedData["Tool wear [min]"];
+                displayData(parsedData);
+            }
+        }
+    </script>
+</body>
+</html>

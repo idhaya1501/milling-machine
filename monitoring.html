@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Machine Monitoring</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        #status-alert {
+            font-size: 22px;
+            font-weight: bold;
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            width: 60%;
+            background-color: #ffeb3b;
+            color: #333;
+            margin-bottom: 20px;
+            width: 500px;
+        }
+
+        #result-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            padding: 20px;
+            background: rgb(216, 211, 211);
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            width: 300px;
+        }
+
+        .data-box {
+            width: 160px;
+            padding: 15px;
+            background: linear-gradient(135deg, #070707, #070707);
+            color: rgb(228, 217, 217);
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            border-radius: 10px;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <h1>Machine Monitoring System</h1><br>
+    <div id="status-alert">Status: Waiting...</div>
+    <div id="result-container"></div>
+
+    <script>
+        function getRandomType() {
+            const types = ["H", "M", "L"];
+            return types[Math.floor(Math.random() * types.length)];
+        }
+        function getRandomChange(value, minChange, maxChange) {
+            return value + (Math.random() * (maxChange - minChange) + minChange);
+        }
+
+        function updateValues() {
+            let data = {
+            "Type": getRandomType(),  // Randomly selects H, M, or L
+            "Air Temperature [K]": parseFloat(getRandomChange(300, -5, 5).toFixed(2)),  
+            "Process Temperature [K]": parseFloat(getRandomChange(350, -5, 5).toFixed(2)),  
+            "Rotational Speed [rpm]": parseFloat(getRandomChange(1500, -50, 50).toFixed(2)),  
+            "Torque [Nm]": parseFloat(getRandomChange(50, -5, 5).toFixed(2)),  
+            "Tool Wear [min]": parseFloat(getRandomChange(20, -2, 2).toFixed(2))  
+        };
+
+            localStorage.setItem("machineData", JSON.stringify(data));
+            displayData(data);
+        }
+
+        function displayData(data) {
+            const reasonMapping = ["HDF", "OSF", "PWF", "RNF", "TWF", "Normal"];
+            let randomIndex = Math.floor(Math.random() * reasonMapping.length);
+            let statusAlert = document.getElementById("status-alert");
+            let currentReason = reasonMapping[randomIndex];
+
+            if (currentReason === "Normal") {
+                statusAlert.textContent = "Machine Working Fine: Normal";
+                statusAlert.style.backgroundColor = "#4CAF50";
+                statusAlert.style.color = "white";
+            } else {
+                statusAlert.textContent = `Machine Failure Detected: ${currentReason}`;
+                statusAlert.style.backgroundColor = "#F44336";
+                statusAlert.style.color = "white";
+            }
+
+            document.getElementById("result-container").innerHTML = `  
+                <div class="data-box">Type: ${data["Type"]}</div>
+                <div class="data-box">Air Temp: ${data["Air Temperature [K]"]} K</div>
+                <div class="data-box">Proc Temp: ${data["Process Temperature [K]"]} K</div>
+                <div class="data-box">Rot Speed: ${data["Rotational Speed [rpm]"]} RPM</div>
+                <div class="data-box">Torque: ${data["Torque [Nm]"]} Nm</div>
+                <div class="data-box">Tool Wear: ${data["Tool Wear [min]"]} min</div>
+            `;
+        }
+
+        function startRandomUpdates() {
+            updateValues(); // Initial update
+            setInterval(updateValues, 2000); // Update every 2 seconds
+        }
+
+        window.onload = function() {
+            setTimeout(startRandomUpdates, 1000);
+        };
+    </script>
+</body>
+</html>
